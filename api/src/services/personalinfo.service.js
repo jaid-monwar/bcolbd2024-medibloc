@@ -6,7 +6,7 @@ const {
   getContractObject,
   getWalletPath,
   getCCP,
-  getAgreementsWithPagination,
+  getPersonalInfosWithPagination,
 } = require("../utils/blockchainUtils");
 const {
   NETWORK_ARTIFACTS_DEFAULT,
@@ -45,6 +45,7 @@ const createPersonalInfo = async (personalInfoData, user) => {
         orgId: parseInt(user.orgId),
         department: user.department,
         firstParty: personalInfoData.firstParty,
+        secondParty: personalInfoData.secondParty,
         docType: BLOCKCHAIN_DOC_TYPE.PERSONALINFO,
         createBy: user.email,
         updatedBy: user.email,
@@ -53,7 +54,7 @@ const createPersonalInfo = async (personalInfoData, user) => {
       },
     };
 
-    const contract = await getPersonalInfoObject(
+    const contract = await getContractObject(
       orgName,
       user.email,
       NETWORK_ARTIFACTS_DEFAULT.CHANNEL_NAME,
@@ -155,19 +156,19 @@ const approveAgreement = async (approvalData, agreementId, user) => {
  * @param {number} [options.page] - Current page (default = 1)
  * @returns {Promise<QueryResult>}
  */
-const queryAgreements = async (filter) => {
+const queryPersonalInfos = async (filter) => {
   try {
     let query;
     console.log("==========================filter type", filter);
     if (filter?.filterType) {
       switch (filter.filterType) {
         case FILTER_TYPE.ALL:
-          query = `{\"selector\":{\"$or\":[{\"firstParty\":\"Org${filter.orgId}\"}, {\"secondParty\":\"Org${filter.orgId}\"}],\"docType\": \"${BLOCKCHAIN_DOC_TYPE.AGREEMENT}\"}, \"use_index\":[\"_design/indexAssetTypeOrgIdTime\", \"orgId_docType_time_index\"]}`;
+          query = `{\"selector\":{\"$or\":[{\"firstParty\":\"Org${filter.orgId}\"}, {\"secondParty\":\"Org${filter.orgId}\"}],\"docType\": \"${BLOCKCHAIN_DOC_TYPE.PERSONALINFO}\"}, \"use_index\":[\"_design/indexAssetTypeOrgIdTime\", \"orgId_docType_time_index\"]}`;
 
           break;
         case FILTER_TYPE.ACTIVE:
           // query = `{\"selector\":{\"orgId\": ${filter.orgId},\"orgId\": ${filter.orgId},\"status\":\"${filter.filterType}\",  \"docType\": \"${BLOCKCHAIN_DOC_TYPE.AGREEMENT}\"}, \"sort\":[{\"updatedAt\":\"desc\"}], \"use_index\":[\"_design/indexAssetTypeOrgIdTime\", \"orgId_docType_time_index\"]}}`;
-          query = `{\"selector\":{\"$or\":[{\"firstParty\":\"Org${filter.orgId}\"}, {\"secondParty\":\"Org${filter.orgId}\"}],\"status\":\"${filter.filterType}\",  \"docType\": \"${BLOCKCHAIN_DOC_TYPE.AGREEMENT}\"}, \"use_index\":[\"_design/indexAssetTypeOrgIdTime\", \"orgId_docType_time_index\"]}}`;
+          query = `{\"selector\":{\"$or\":[{\"firstParty\":\"Org${filter.orgId}\"}, {\"secondParty\":\"Org${filter.orgId}\"}],\"status\":\"${filter.filterType}\",  \"docType\": \"${BLOCKCHAIN_DOC_TYPE.PERSONALINFO}\"}, \"use_index\":[\"_design/indexAssetTypeOrgIdTime\", \"orgId_docType_time_index\"]}}`;
 
           break;
         case FILTER_TYPE.EXPIRING_SOON:
@@ -175,12 +176,12 @@ const queryAgreements = async (filter) => {
           query = `{\"selector\":{\"endDate\":{\"$lt\":${
             +new Date() + THIRTY_DAYS
           }}, \"docType\": \"${
-            BLOCKCHAIN_DOC_TYPE.AGREEMENT
+            BLOCKCHAIN_DOC_TYPE.PERSONALINFO
           }\"}, \"use_index\":[\"_design/indexAssetTypeOrgIdTime\", \"orgId_docType_time_index\"]}}`;
 
           break;
         case FILTER_TYPE.INPROGRESS:
-          query = `{\"selector\":{\"$or\":[{\"firstParty\":\"Org${filter.orgId}\"}, {\"secondParty\":\"Org${filter.orgId}\"}],\"status\":\"${filter.filterType}\", \"docType\": \"${BLOCKCHAIN_DOC_TYPE.AGREEMENT}\"},  \"use_index\":[\"_design/status_doc_type_index\", \"status_doc_type_index\"]}`;
+          query = `{\"selector\":{\"$or\":[{\"firstParty\":\"Org${filter.orgId}\"}, {\"secondParty\":\"Org${filter.orgId}\"}],\"status\":\"${filter.filterType}\", \"docType\": \"${BLOCKCHAIN_DOC_TYPE.PERSONALINFO}\"},  \"use_index\":[\"_design/status_doc_type_index\", \"status_doc_type_index\"]}`;
           console.log(
             "-----------aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-------",
             query
@@ -188,17 +189,17 @@ const queryAgreements = async (filter) => {
           break;
 
         default:
-          query = `{\"selector\":{\"orgId\": ${filter.orgId},\"docType\": \"${BLOCKCHAIN_DOC_TYPE.AGREEMENT}\"}, \"sort\":[{\"updatedAt\":\"desc\"}], \"use_index\":[\"_design/indexAssetTypeOrgIdTime\", \"orgId_docType_time_index\"]}}`;
+          query = `{\"selector\":{\"orgId\": ${filter.orgId},\"docType\": \"${BLOCKCHAIN_DOC_TYPE.PERSONALINFO}\"}, \"sort\":[{\"updatedAt\":\"desc\"}], \"use_index\":[\"_design/indexAssetTypeOrgIdTime\", \"orgId_docType_time_index\"]}}`;
           break;
       }
     } else {
-      query = `{\"selector\":{\"docType\": \"${BLOCKCHAIN_DOC_TYPE.AGREEMENT}\"}, \"sort\":[{\"updatedAt\":\"desc\"}], \"use_index\":[\"_design/indexAssetTypeOrgIdTime\", \"orgId_docType_time_index\"]}}`;
+      query = `{\"selector\":{\"docType\": \"${BLOCKCHAIN_DOC_TYPE.PERSONALINFO}\"}, \"sort\":[{\"updatedAt\":\"desc\"}], \"use_index\":[\"_design/indexAssetTypeOrgIdTime\", \"orgId_docType_time_index\"]}}`;
     }
     // query = `{\"selector\":{\"orgId\": ${filter.orgId},\"status\":\"${filter.filterType}\", \"docType\": \"${BLOCKCHAIN_DOC_TYPE.AGREEMENT}\"}, \"sort\":[{\"updatedAt\":\"desc\"}], \"use_index\":[\"_design/indexOrgDoc\", \"indexDoc\"]}}`;
     //  query = `{\"selector\":{\"orgId\": \"${filter.orgId}\", \"docType\": \"${BLOCKCHAIN_DOC_TYPE.AGREEMENT}\"}, \"sort\":[{\"updatedAt\":\"desc\"}], \"use_index\":[\"_design/indexAssetTypeOrgIdTime\", \"orgId_docType_time_index\"]}}`;
     //  query = `{\"selector\":{\"orgId\": ${filter.orgId}, \"docType\": \"${BLOCKCHAIN_DOC_TYPE.AGREEMENT}\"}}}`;
     console.log("filters--------------", filter, query);
-    let data = await getAgreementsWithPagination(
+    let data = await getPersonalInfosWithPagination(
       query,
       filter.pageSize,
       filter.bookmark,
@@ -323,7 +324,7 @@ const queryHistoryById = async (id, user) => {
  * @param {ObjectId} id
  * @returns {Promise<User>}
  */
-const queryAgreementById = async (id, user) => {
+const queryPersonalInfoById = async (id, user) => {
   let gateway;
   let client;
   try {
@@ -351,8 +352,8 @@ const queryAgreementById = async (id, user) => {
       agreementId: id,
     };
 
-    let approvals = await queryApprovalsByAgreementId(filter);
-    result.approvals = approvals?.data?.map((elm) => elm.Record) || [];
+    // let approvals = await queryApprovalsByAgreementId(filter);
+    // result.approvals = approvals?.data?.map((elm) => elm.Record) || [];
     return result;
   } catch (error) {
     console.log(error);
@@ -415,8 +416,8 @@ const deleteUserById = async (userId) => {
 
 module.exports = {
   createPersonalInfo,
-  queryAgreements,
-  queryAgreementById,
+  queryPersonalInfos,
+  queryPersonalInfoById,
   getUserByEmail,
   updateUserById,
   deleteUserById,

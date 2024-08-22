@@ -8,6 +8,7 @@ const createPersonalInfo = Joi.object().keys({
   phone: Joi.string().required(),
   address: Joi.string().required(),
   firstParty: Joi.string().required(),
+  secondParty: Joi.string().required(),
 });
 
 const approveAgreement = {
@@ -25,7 +26,7 @@ const approveAgreement = {
   }),
 };
 
-const getAgreementById = {
+const getPersonalInfoById = {
   params: Joi.object().keys({
     id: Joi.string().required(),
   }),
@@ -47,6 +48,6 @@ module.exports = {
   createPersonalInfo,
   approveAgreement,
   getAgreementApprovals,
-  getAgreementById,
+  getPersonalInfoById,
   getSignedURL,
 };

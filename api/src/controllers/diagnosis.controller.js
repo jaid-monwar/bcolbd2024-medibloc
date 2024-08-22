@@ -58,7 +58,7 @@ const getSignedURL = catchAsync(async (req, res) => {
   );
 });
 
-const getAgreements = catchAsync(async (req, res) => {
+const getDiagnoses = catchAsync(async (req, res) => {
   const { pageSize, bookmark, filterType } = req.query;
 
   let { orgId, email } = req.loggerInfo.user;
@@ -75,7 +75,7 @@ const getAgreements = catchAsync(async (req, res) => {
 
   console.log(filter);
 
-  let data = await agreementService.queryAgreements(filter);
+  let data = await diagnosisService.queryDiagnoses(filter);
   if (data?.data) {
     data.data = data.data.map((elm) => elm.Record);
   }
@@ -124,16 +124,16 @@ const getApprovalsByAgreementId = catchAsync(async (req, res) => {
   );
 });
 
-const getAgreementById = catchAsync(async (req, res) => {
+const getDiagnosisById = catchAsync(async (req, res) => {
   const { id } = req.params;
 
   let { user } = req.loggerInfo;
-  let data = await agreementService.queryAgreementById(id, user);
+  let data = await diagnosisService.queryDiagnosisById(id, user);
 
   res
     .status(httpStatus.OK)
     .send(
-      getSuccessResponse(httpStatus.OK, "Agreement fetched successfully", data)
+      getSuccessResponse(httpStatus.OK, "Diagnosis fetched successfully", data)
     );
 });
 
@@ -159,11 +159,11 @@ const deleteUser = catchAsync(async (req, res) => {
 
 module.exports = {
   createDiagnosis,
-  getAgreements,
+  getDiagnoses,
   getUser,
   updateUser,
   deleteUser,
-  getAgreementById,
+  getDiagnosisById,
   approveAgreement,
   getApprovalsByAgreementId,
   getSignedURL,

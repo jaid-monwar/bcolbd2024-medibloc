@@ -25,7 +25,7 @@ const approveAgreement = {
   }),
 };
 
-const getAgreementById = {
+const getDiagnosisById = {
   params: Joi.object().keys({
     id: Joi.string().required(),
   }),
@@ -47,6 +47,6 @@ module.exports = {
   createDiagnosis,
   approveAgreement,
   getAgreementApprovals,
-  getAgreementById,
+  getDiagnosisById,
   getSignedURL,
 };

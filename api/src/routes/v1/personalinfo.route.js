@@ -8,6 +8,14 @@ const personalInfoController = require("../../controllers/personalinfo.controlle
 const router = express.Router();
 
 router
+  .route("/:id")
+  .get(
+    auth,
+    validate(personalInfoValidation.getPersonalInfoById),
+    personalInfoController.getPersonalInfoById
+  );
+
+router
   .route("/")
   .post(auth, personalInfoController.createPersonalInfo)
   .get(auth, personalInfoController.getPersonalInfos);
