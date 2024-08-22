@@ -53,7 +53,7 @@ const getSignedURL = catchAsync(async (req, res) => {
   );
 });
 
-const getAgreements = catchAsync(async (req, res) => {
+const getPersonalInfos = catchAsync(async (req, res) => {
   const { pageSize, bookmark, filterType } = req.query;
 
   let { orgId, email } = req.loggerInfo.user;
@@ -70,7 +70,7 @@ const getAgreements = catchAsync(async (req, res) => {
 
   console.log(filter);
 
-  let data = await agreementService.queryAgreements(filter);
+  let data = await personalInfoService.queryPersonalInfos(filter);
   if (data?.data) {
     data.data = data.data.map((elm) => elm.Record);
   }
@@ -119,16 +119,20 @@ const getApprovalsByAgreementId = catchAsync(async (req, res) => {
   );
 });
 
-const getAgreementById = catchAsync(async (req, res) => {
+const getPersonalInfoById = catchAsync(async (req, res) => {
   const { id } = req.params;
 
   let { user } = req.loggerInfo;
-  let data = await agreementService.queryAgreementById(id, user);
+  let data = await agreementService.queryPersonalInfoById(id, user);
 
   res
     .status(httpStatus.OK)
     .send(
-      getSuccessResponse(httpStatus.OK, "Agreement fetched successfully", data)
+      getSuccessResponse(
+        httpStatus.OK,
+        "Personal Information fetched successfully",
+        data
+      )
     );
 });
 
@@ -154,11 +158,11 @@ const deleteUser = catchAsync(async (req, res) => {
 
 module.exports = {
   createPersonalInfo,
-  getAgreements,
+  getPersonalInfos,
   getUser,
   updateUser,
   deleteUser,
-  getAgreementById,
+  getPersonalInfoById,
   approveAgreement,
   getApprovalsByAgreementId,
   getSignedURL,

@@ -9,6 +9,14 @@ const { uploadFileToS3 } = require("../../utils/fileUpload");
 const router = express.Router();
 
 router
+  .route("/:id")
+  .get(
+    auth,
+    validate(diagnosisValidation.getDiagnosisById),
+    diagnosisController.getDiagnosisById
+  );
+
+router
   .route("/")
   .post(auth, uploadFileToS3, diagnosisController.createDiagnosis)
   .get(auth, diagnosisController.getDiagnoses);
