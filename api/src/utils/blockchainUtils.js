@@ -227,49 +227,7 @@ const getContractObject = async (
   return contract;
 };
 
-const getDiagnosesWithPagination = async (
-  queryString,
-  pageSize,
-  bookmark,
-  orgName,
-  user,
-  channelName,
-  contractName
-) => {
-  let gateway;
-  let client;
-  try {
-    const contract = await getContractObject(
-      orgName,
-      user,
-      channelName,
-      contractName,
-      gateway,
-      client
-    );
-    let result = await contract.submitTransaction(
-      "getDataWithPagination",
-      queryString,
-      pageSize.toString(),
-      bookmark
-    );
-
-    result = JSON.parse(utf8Decoder.decode(result));
-    return result;
-  } catch (error) {
-    console.log(error);
-    throw error;
-  } finally {
-    if (gateway) {
-      gateway.close();
-    }
-    if (client) {
-      client.close();
-    }
-  }
-};
-
-const getPersonalInfosWithPagination = async (
+const getPrescriptionsWithPagination = async (
   queryString,
   pageSize,
   bookmark,
@@ -318,6 +276,5 @@ module.exports = {
   getWalletPath,
   registerUser,
   // getAgreementsWithPagination,
-  getDiagnosesWithPagination,
-  getPersonalInfosWithPagination,
+  getPrescriptionsWithPagination,
 };

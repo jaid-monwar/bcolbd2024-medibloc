@@ -2,23 +2,52 @@ const express = require("express");
 const { auth, adminAuth } = require("../../middlewares/auth");
 const validate = require("../../middlewares/validate");
 const userValidation = require("../../validations/user.validation");
-const personalInfoValidation = require("../../validations/personalinfo.validation");
-const personalInfoController = require("../../controllers/personalinfo.controller");
+const prescriptionValidation = require("../../validations/prescription.validation");
+const prescriptionController = require("../../controllers/prescription.controller");
 
 const router = express.Router();
+
+//   Routes for Prescription
+router
+  .route("/")
+  .post(auth, prescriptionController.createPrescription)
+  .get(auth, prescriptionController.getPrescriptions);
 
 router
   .route("/:id")
   .get(
     auth,
-    validate(personalInfoValidation.getPersonalInfoById),
-    personalInfoController.getPersonalInfoById
+    validate(prescriptionValidation.getPrescriptionById),
+    prescriptionController.getPrescriptionById
   );
 
+//   Routes for Personal Info
 router
-  .route("/")
-  .post(auth, personalInfoController.createPersonalInfo)
-  .get(auth, personalInfoController.getPersonalInfos);
+  .route("/personalinfo/:id")
+  .post(
+    auth,
+    validate(prescriptionValidation.createPersonalInfo),
+    prescriptionController.createPersonalInfo
+  )
+  .get(
+    auth,
+    validate(prescriptionValidation.getPersonalInfos),
+    prescriptionController.getPersonalInfosByPrescriptionId
+  );
+
+//   Routes for Diagnosis
+router
+  .route("/diagnosis/:id")
+  .post(
+    auth,
+    validate(prescriptionValidation.createDiagnosis),
+    prescriptionController.createDiagnosis
+  )
+  .get(
+    auth,
+    validate(prescriptionValidation.getDiagnoses),
+    prescriptionController.getDiagnosesByPrescriptionId
+  );
 
 module.exports = router;
 
