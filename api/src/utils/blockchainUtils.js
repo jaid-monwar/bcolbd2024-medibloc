@@ -198,7 +198,7 @@ const getClient = async (ccp, orgName) => {
   );
 };
 
-const getDiagnosisObject = async (
+const getContractObject = async (
   orgName,
   user,
   channelName,
@@ -227,36 +227,7 @@ const getDiagnosisObject = async (
   return contract;
 };
 
-const getPersonalInfoObject = async (
-  orgName,
-  user,
-  channelName,
-  contractName,
-  gateway,
-  client
-) => {
-  const walletPath = await getWalletPath(orgName);
-  const wallet = await Wallets.newFileSystemWallet(walletPath);
-  const ccp = await getCCP(orgName);
-  let identity = await wallet.get(user);
-  if (!identity) {
-    let message = `An identity for the user ${user} does not exist in the wallet, please contact admin`;
-    throw new ApiError(httpStatus.NOT_EXTENDED, message);
-  }
-
-  client = await getClient(ccp, orgName);
-  gateway = connect({
-    client,
-    identity: await getIdentity(identity),
-    signer: getSigner(identity),
-  });
-
-  const network = await gateway.getNetwork(channelName);
-  let contract = await network.getContract(contractName);
-  return contract;
-};
-
-const getAgreementsWithPagination = async (
+const getPrescriptionsWithPagination = async (
   queryString,
   pageSize,
   bookmark,
@@ -299,11 +270,11 @@ const getAgreementsWithPagination = async (
 };
 
 module.exports = {
-  getDiagnosisObject,
-  getPersonalInfoObject,
+  getContractObject,
   getCCP,
   getCaUrl,
   getWalletPath,
   registerUser,
-  getAgreementsWithPagination,
+  // getAgreementsWithPagination,
+  getPrescriptionsWithPagination,
 };

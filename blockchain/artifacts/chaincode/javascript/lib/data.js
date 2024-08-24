@@ -96,36 +96,6 @@ class Agreement extends Contract {
     }
   }
 
-  async updatePrescription(
-    ctx,
-    id,
-    personalId,
-    diagnosisId,
-    medicationId,
-    countId
-  ) {
-    try {
-      const exists = await this.assetExists(ctx, id);
-      if (!exists) {
-        throw new Error(`The asset ${id} does not exist`);
-      }
-
-      const updatedPrescription = {
-        ID: id,
-        PersonalID: personalId,
-        DiagnosisID: diagnosisId,
-        MedicationID: medicationId,
-        CountID: countId,
-      };
-      return ctx.stub.putState(
-        id,
-        Buffer.from(JSON.stringify(updatedPrescription))
-      );
-    } catch (err) {
-      throw new Error(err.stack);
-    }
-  }
-
   async assetExists(ctx, id) {
     try {
       const assetJSON = await ctx.stub.getState(id);
@@ -176,21 +146,6 @@ class Agreement extends Contract {
           return allResults;
         }
       }
-    } catch (err) {
-      return new Error(err.message);
-    }
-  }
-
-  async getDataForQuery(ctx, queryString) {
-    try {
-      console.log(
-        "- getQueryResultForQueryString queryString:\n" + queryString
-      );
-
-      const resultsIterator = await ctx.stub.getQueryResult(queryString);
-      let results = await this.getAllResults(resultsIterator, false);
-
-      return results;
     } catch (err) {
       return new Error(err.message);
     }

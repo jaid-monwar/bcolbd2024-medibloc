@@ -3,10 +3,10 @@ const { User } = require("../models");
 const ApiError = require("../utils/ApiError");
 const { Gateway, Wallets } = require("fabric-network");
 const {
-  getDiagnosisObject,
+  getContractObject,
   getWalletPath,
   getCCP,
-  getAgreementsWithPagination,
+  getPrescriptionsWithPagination,
 } = require("../utils/blockchainUtils");
 const {
   NETWORK_ARTIFACTS_DEFAULT,
@@ -27,40 +27,30 @@ const utf8Decoder = new TextDecoder();
  * @param {Object} userBody
  * @returns {Promise<Agreement>}
  */
-const createDiagnosis = async (diagnosisData, fileMetadata, user) => {
+const createPrescription = async (prescriptionData, user) => {
   let gateway;
   let client;
   try {
     let dateTime = new Date();
     let orgName = `org${user.orgId}`;
-    diagnosisData = {
-      fcn: "CreateDiagnosis",
+    prescriptionData = {
+      fcn: "CreatePrescription",
       data: {
         id: getUUID(),
         owner: orgName,
-        diagnosis: diagnosisData.diagnosis,
         orgId: parseInt(user.orgId),
         department: user.department,
-        firstParty: diagnosisData.firstParty,
-        secondParty: diagnosisData.secondParty,
-        diagnosisDate: parseInt(diagnosisData.startDate),
-        docType: BLOCKCHAIN_DOC_TYPE.DIAGNOSIS,
-        comments: [diagnosisData.comment],
+        firstParty: prescriptionData.firstParty,
+        secondParty: prescriptionData.secondParty,
+        docType: BLOCKCHAIN_DOC_TYPE.PRESCRIPTION,
         createBy: user.email,
         updatedBy: user.email,
         createAt: dateTime,
         updatedAt: dateTime,
-        document: {
-          ...fileMetadata,
-          createBy: user.email,
-          updatedBy: user.email,
-          createAt: dateTime,
-          updatedAt: dateTime,
-        },
       },
     };
 
-    const diagnosis = await getDiagnosisObject(
+    const contract = await getContractObject(
       orgName,
       user.email,
       NETWORK_ARTIFACTS_DEFAULT.CHANNEL_NAME,
@@ -68,13 +58,148 @@ const createDiagnosis = async (diagnosisData, fileMetadata, user) => {
       gateway,
       client
     );
-    await diagnosis.submitTransaction(
+    await contract.submitTransaction(
+      prescriptionData.fcn,
+      JSON.stringify(prescriptionData.data)
+    );
+    return prescriptionData.data;
+  } catch (error) {
+    console.log(error);
+  } finally {
+    if (gateway) {
+      gateway.close();
+    }
+    if (client) {
+      client.close();
+    }
+  }
+};
+
+/**
+ * Create a user
+ * @param {Object} userBody
+ * @returns {Promise<Agreement>}
+ */
+const createPersonalInfo = async (personalinfoData, prescriptionId, user) => {
+  let gateway;
+  let client;
+  try {
+    // let isLastApproval =  await validateApprovals(agreementId, user)
+    let dateTime = new Date();
+    let orgName = `org${user.orgId}`;
+    personalinfoData = {
+      fcn: "CreatePersonalInfo",
+      data: {
+        id: getUUID(),
+        prescriptionId: prescriptionId,
+        name: personalinfoData.name,
+        age: personalinfoData.age,
+        address: personalinfoData.address,
+        docType: BLOCKCHAIN_DOC_TYPE.PERSONALINFO,
+        // status: approvalData.status,
+        createBy: user.email,
+        updatedBy: user.email,
+        createAt: dateTime,
+        updatedAt: dateTime,
+        orgId: parseInt(user.orgId),
+        department: user.department,
+      },
+    };
+
+    const contract = await getContractObject(
+      orgName,
+      user.email,
+      NETWORK_ARTIFACTS_DEFAULT.CHANNEL_NAME,
+      NETWORK_ARTIFACTS_DEFAULT.CHAINCODE_NAME,
+      gateway,
+      client
+    );
+    let result = await contract.submitTransaction(
+      personalinfoData.fcn,
+      JSON.stringify(personalinfoData.data)
+    );
+
+    let prescription = await queryPrescriptionById(prescriptionId, user);
+    if (prescription.status === AGREEMENT_STATUS.INPROGRESS) {
+      prescription.status = AGREEMENT_STATUS.ACTIVE;
+      await contract.submitTransaction(
+        personalinfoData.fcn,
+        JSON.stringify(prescription)
+      );
+    }
+
+    result = { txid: utf8Decoder.decode(result) };
+    return result;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  } finally {
+    if (gateway) {
+      gateway.close();
+    }
+    if (client) {
+      client.close();
+    }
+  }
+};
+
+/**
+ * Create a user
+ * @param {Object} userBody
+ * @returns {Promise<Agreement>}
+ */
+const createDiagnosis = async (diagnosisData, prescriptionId, user) => {
+  let gateway;
+  let client;
+  try {
+    // let isLastApproval =  await validateApprovals(agreementId, user)
+    let dateTime = new Date();
+    let orgName = `org${user.orgId}`;
+    diagnosisData = {
+      fcn: "CreateDiagnosis",
+      data: {
+        id: getUUID(),
+        prescriptionId: prescriptionId,
+        diagnosis: diagnosisData.diagnosis,
+        docType: BLOCKCHAIN_DOC_TYPE.DIAGNOSIS,
+        status: diagnosisData.status,
+        comment: diagnosisData.comment,
+        createBy: user.email,
+        updatedBy: user.email,
+        createAt: dateTime,
+        updatedAt: dateTime,
+        orgId: parseInt(user.orgId),
+        department: user.department,
+      },
+    };
+
+    const contract = await getContractObject(
+      orgName,
+      user.email,
+      NETWORK_ARTIFACTS_DEFAULT.CHANNEL_NAME,
+      NETWORK_ARTIFACTS_DEFAULT.CHAINCODE_NAME,
+      gateway,
+      client
+    );
+    let result = await contract.submitTransaction(
       diagnosisData.fcn,
       JSON.stringify(diagnosisData.data)
     );
-    return diagnosisData.data;
+
+    let prescription = await queryPrescriptionById(prescriptionId, user);
+    if (prescription.status === AGREEMENT_STATUS.INPROGRESS) {
+      prescription.status = AGREEMENT_STATUS.ACTIVE;
+      await contract.submitTransaction(
+        diagnosisData.fcn,
+        JSON.stringify(prescription)
+      );
+    }
+
+    result = { txid: utf8Decoder.decode(result) };
+    return result;
   } catch (error) {
     console.log(error);
+    throw error;
   } finally {
     if (gateway) {
       gateway.close();
@@ -162,19 +287,19 @@ const approveAgreement = async (approvalData, agreementId, user) => {
  * @param {number} [options.page] - Current page (default = 1)
  * @returns {Promise<QueryResult>}
  */
-const queryAgreements = async (filter) => {
+const queryPrescriptions = async (filter) => {
   try {
     let query;
     console.log("==========================filter type", filter);
     if (filter?.filterType) {
       switch (filter.filterType) {
         case FILTER_TYPE.ALL:
-          query = `{\"selector\":{\"$or\":[{\"firstParty\":\"Org${filter.orgId}\"}, {\"secondParty\":\"Org${filter.orgId}\"}],\"docType\": \"${BLOCKCHAIN_DOC_TYPE.AGREEMENT}\"}, \"use_index\":[\"_design/indexAssetTypeOrgIdTime\", \"orgId_docType_time_index\"]}`;
+          query = `{\"selector\":{\"$or\":[{\"firstParty\":\"Org${filter.orgId}\"}, {\"secondParty\":\"Org${filter.orgId}\"}],\"docType\": \"${BLOCKCHAIN_DOC_TYPE.PRESCRIPTION}\"}, \"use_index\":[\"_design/indexAssetTypeOrgIdTime\", \"orgId_docType_time_index\"]}`;
 
           break;
         case FILTER_TYPE.ACTIVE:
           // query = `{\"selector\":{\"orgId\": ${filter.orgId},\"orgId\": ${filter.orgId},\"status\":\"${filter.filterType}\",  \"docType\": \"${BLOCKCHAIN_DOC_TYPE.AGREEMENT}\"}, \"sort\":[{\"updatedAt\":\"desc\"}], \"use_index\":[\"_design/indexAssetTypeOrgIdTime\", \"orgId_docType_time_index\"]}}`;
-          query = `{\"selector\":{\"$or\":[{\"firstParty\":\"Org${filter.orgId}\"}, {\"secondParty\":\"Org${filter.orgId}\"}],\"status\":\"${filter.filterType}\",  \"docType\": \"${BLOCKCHAIN_DOC_TYPE.AGREEMENT}\"}, \"use_index\":[\"_design/indexAssetTypeOrgIdTime\", \"orgId_docType_time_index\"]}}`;
+          query = `{\"selector\":{\"$or\":[{\"firstParty\":\"Org${filter.orgId}\"}, {\"secondParty\":\"Org${filter.orgId}\"}],\"status\":\"${filter.filterType}\",  \"docType\": \"${BLOCKCHAIN_DOC_TYPE.PRESCRIPTION}\"}, \"use_index\":[\"_design/indexAssetTypeOrgIdTime\", \"orgId_docType_time_index\"]}}`;
 
           break;
         case FILTER_TYPE.EXPIRING_SOON:
@@ -182,12 +307,12 @@ const queryAgreements = async (filter) => {
           query = `{\"selector\":{\"endDate\":{\"$lt\":${
             +new Date() + THIRTY_DAYS
           }}, \"docType\": \"${
-            BLOCKCHAIN_DOC_TYPE.AGREEMENT
+            BLOCKCHAIN_DOC_TYPE.PRESCRIPTION
           }\"}, \"use_index\":[\"_design/indexAssetTypeOrgIdTime\", \"orgId_docType_time_index\"]}}`;
 
           break;
         case FILTER_TYPE.INPROGRESS:
-          query = `{\"selector\":{\"$or\":[{\"firstParty\":\"Org${filter.orgId}\"}, {\"secondParty\":\"Org${filter.orgId}\"}],\"status\":\"${filter.filterType}\", \"docType\": \"${BLOCKCHAIN_DOC_TYPE.AGREEMENT}\"},  \"use_index\":[\"_design/status_doc_type_index\", \"status_doc_type_index\"]}`;
+          query = `{\"selector\":{\"$or\":[{\"firstParty\":\"Org${filter.orgId}\"}, {\"secondParty\":\"Org${filter.orgId}\"}],\"status\":\"${filter.filterType}\", \"docType\": \"${BLOCKCHAIN_DOC_TYPE.PRESCRIPTION}\"},  \"use_index\":[\"_design/status_doc_type_index\", \"status_doc_type_index\"]}`;
           console.log(
             "-----------aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-------",
             query
@@ -195,17 +320,17 @@ const queryAgreements = async (filter) => {
           break;
 
         default:
-          query = `{\"selector\":{\"orgId\": ${filter.orgId},\"docType\": \"${BLOCKCHAIN_DOC_TYPE.AGREEMENT}\"}, \"sort\":[{\"updatedAt\":\"desc\"}], \"use_index\":[\"_design/indexAssetTypeOrgIdTime\", \"orgId_docType_time_index\"]}}`;
+          query = `{\"selector\":{\"orgId\": ${filter.orgId},\"docType\": \"${BLOCKCHAIN_DOC_TYPE.PRESCRIPTION}\"}, \"sort\":[{\"updatedAt\":\"desc\"}], \"use_index\":[\"_design/indexAssetTypeOrgIdTime\", \"orgId_docType_time_index\"]}}`;
           break;
       }
     } else {
-      query = `{\"selector\":{\"docType\": \"${BLOCKCHAIN_DOC_TYPE.AGREEMENT}\"}, \"sort\":[{\"updatedAt\":\"desc\"}], \"use_index\":[\"_design/indexAssetTypeOrgIdTime\", \"orgId_docType_time_index\"]}}`;
+      query = `{\"selector\":{\"docType\": \"${BLOCKCHAIN_DOC_TYPE.PRESCRIPTION}\"}, \"sort\":[{\"updatedAt\":\"desc\"}], \"use_index\":[\"_design/indexAssetTypeOrgIdTime\", \"orgId_docType_time_index\"]}}`;
     }
     // query = `{\"selector\":{\"orgId\": ${filter.orgId},\"status\":\"${filter.filterType}\", \"docType\": \"${BLOCKCHAIN_DOC_TYPE.AGREEMENT}\"}, \"sort\":[{\"updatedAt\":\"desc\"}], \"use_index\":[\"_design/indexOrgDoc\", \"indexDoc\"]}}`;
     //  query = `{\"selector\":{\"orgId\": \"${filter.orgId}\", \"docType\": \"${BLOCKCHAIN_DOC_TYPE.AGREEMENT}\"}, \"sort\":[{\"updatedAt\":\"desc\"}], \"use_index\":[\"_design/indexAssetTypeOrgIdTime\", \"orgId_docType_time_index\"]}}`;
     //  query = `{\"selector\":{\"orgId\": ${filter.orgId}, \"docType\": \"${BLOCKCHAIN_DOC_TYPE.AGREEMENT}\"}}}`;
     console.log("filters--------------", filter, query);
-    let data = await getAgreementsWithPagination(
+    let data = await getPrescriptionsWithPagination(
       query,
       filter.pageSize,
       filter.bookmark,
@@ -246,6 +371,56 @@ const queryApprovalsByAgreementId = async (filter) => {
   let query = `{\"selector\":{\"agreementId\":\"${filter.agreementId}\", \"docType\": \"${BLOCKCHAIN_DOC_TYPE.APPROVAL}\"},  \"use_index\":[\"_design/indexDocTypeAgreementId\", \"docType_agreementId_index\"]}}`;
   // let query = `{\"selector\":{\"orgId\": ${filter.orgId}, \"agreementId\":\"${filter.agreementId}\", \"docType\": \"${BLOCKCHAIN_DOC_TYPE.APPROVAL}\"}}}`;
   let data = await getAgreementsWithPagination(
+    query,
+    filter.pageSize,
+    filter.bookmark,
+    filter.orgName,
+    filter.email,
+    NETWORK_ARTIFACTS_DEFAULT.CHANNEL_NAME,
+    NETWORK_ARTIFACTS_DEFAULT.CHAINCODE_NAME
+  );
+  return data;
+};
+
+/**
+ * Query for users
+ * @param {Object} filter - Mongo filter
+ * @param {Object} options - Query options
+ * @param {string} [options.sortBy] - Sort option in the format: sortField:(desc|asc)
+ * @param {number} [options.limit] - Maximum number of results per page (default = 10)
+ * @param {number} [options.page] - Current page (default = 1)
+ * @returns {Promise<QueryResult>}
+ */
+const queryPersonalInfosByPrescriptionId = async (filter) => {
+  console.log(filter);
+  let query = `{\"selector\":{\"prescriptionId\":\"${filter.prescriptionId}\", \"docType\": \"${BLOCKCHAIN_DOC_TYPE.PERSONALINFO}\"},  \"use_index\":[\"_design/indexDocTypePrescriptionId\", \"docType_prescriptionId_index\"]}}`;
+  // let query = `{\"selector\":{\"orgId\": ${filter.orgId}, \"agreementId\":\"${filter.prescriptionId}\", \"docType\": \"${BLOCKCHAIN_DOC_TYPE.PERSONALINFO}\"}}}`;
+  let data = await getPrescriptionsWithPagination(
+    query,
+    filter.pageSize,
+    filter.bookmark,
+    filter.orgName,
+    filter.email,
+    NETWORK_ARTIFACTS_DEFAULT.CHANNEL_NAME,
+    NETWORK_ARTIFACTS_DEFAULT.CHAINCODE_NAME
+  );
+  return data;
+};
+
+/**
+ * Query for users
+ * @param {Object} filter - Mongo filter
+ * @param {Object} options - Query options
+ * @param {string} [options.sortBy] - Sort option in the format: sortField:(desc|asc)
+ * @param {number} [options.limit] - Maximum number of results per page (default = 10)
+ * @param {number} [options.page] - Current page (default = 1)
+ * @returns {Promise<QueryResult>}
+ */
+const queryDiagnosesByPrescriptionId = async (filter) => {
+  console.log(filter);
+  let query = `{\"selector\":{\"prescriptionId\":\"${filter.prescriptionId}\", \"docType\": \"${BLOCKCHAIN_DOC_TYPE.DIAGNOSIS}\"},  \"use_index\":[\"_design/indexDocTypePrescriptionId\", \"docType_prescriptionId_index\"]}}`;
+  // let query = `{\"selector\":{\"orgId\": ${filter.orgId}, \"prescriptionId\":\"${filter.prescriptionId}\", \"docType\": \"${BLOCKCHAIN_DOC_TYPE.DIAGNOSIS}\"}}}`;
+  let data = await getPrescriptionsWithPagination(
     query,
     filter.pageSize,
     filter.bookmark,
@@ -330,7 +505,7 @@ const queryHistoryById = async (id, user) => {
  * @param {ObjectId} id
  * @returns {Promise<User>}
  */
-const queryAgreementById = async (id, user) => {
+const queryPrescriptionById = async (id, user) => {
   let gateway;
   let client;
   try {
@@ -358,8 +533,12 @@ const queryAgreementById = async (id, user) => {
       agreementId: id,
     };
 
-    let approvals = await queryApprovalsByAgreementId(filter);
-    result.approvals = approvals?.data?.map((elm) => elm.Record) || [];
+    let personalinfos = await queryPersonalInfosByPrescriptionId(filter);
+    result.personalinfos = personalinfos?.data?.map((elm) => elm.Record) || [];
+
+    let diagnoses = await queryDiagnosesByPrescriptionId(filter);
+    result.diagnoses = diagnoses?.data?.map((elm) => elm.Record) || [];
+
     return result;
   } catch (error) {
     console.log(error);
@@ -421,14 +600,18 @@ const deleteUserById = async (userId) => {
 };
 
 module.exports = {
+  createPrescription,
+  queryPrescriptions,
+  queryPrescriptionById,
+  createPersonalInfo,
   createDiagnosis,
-  queryAgreements,
-  queryAgreementById,
   getUserByEmail,
   updateUserById,
   deleteUserById,
   approveAgreement,
   queryApprovalsByAgreementId,
+  queryPersonalInfosByPrescriptionId,
+  queryDiagnosesByPrescriptionId,
   getDocSignedURL,
   queryHistoryById,
 };
