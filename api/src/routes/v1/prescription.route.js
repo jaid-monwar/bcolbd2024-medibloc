@@ -21,6 +21,15 @@ router
     prescriptionController.getPrescriptionById
   );
 
+// Prescription History
+router
+  .route("/history/:id")
+  .get(
+    auth,
+    validate(prescriptionValidation.getPrescriptionHistory),
+    prescriptionController.getHistoryById
+  );
+
 //   Routes for Personal Info
 router
   .route("/personalinfo/:id")
