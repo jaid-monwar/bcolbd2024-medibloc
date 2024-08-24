@@ -58,7 +58,6 @@ router
     prescriptionController.getDiagnosesByPrescriptionId
   );
 
-
 //   Routes for Medication
 router
   .route("/medication/:id")
@@ -72,7 +71,6 @@ router
     validate(prescriptionValidation.getMedication),
     prescriptionController.getMedicationByPrescriptionId
   );
-
 
 //   Routes for Medcount
 router
