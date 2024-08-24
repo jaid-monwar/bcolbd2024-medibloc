@@ -1,6 +1,7 @@
 const Joi = require("joi");
 const { USER_DEPARTMENT, APPROVAL_STATUS } = require("../utils/Constants");
 const { password } = require("./custom.validation");
+const { count } = require("console");
 
 const createPrescription = Joi.object().keys({
   firstParty: Joi.string().required(),
@@ -37,6 +38,33 @@ const createDiagnosis = {
   }),
 };
 
+
+
+const createMedication = {
+  body: Joi.object().keys({
+    medication: Joi.string().required(),
+    dosage: Joi.string().required(),
+    timePeriod: Joi.string().required(),
+    comment: Joi.string().required(),
+    status: Joi.string()
+      .required()
+      .valid(
+        APPROVAL_STATUS.ACTIVE,
+        APPROVAL_STATUS.INACTIVE
+      ),
+  }),
+};
+
+const createMedcount = {
+  body: Joi.object().keys({
+    medication: Joi.string().required(),
+    count: Joi.string().required(),
+    comment: Joi.string().required(),
+  }),
+};
+
+
+
 // const approveAgreement = {
 //   body: Joi.object().keys({
 //     description: Joi.string().required(),
@@ -70,6 +98,23 @@ const getDiagnoses = {
   }),
 };
 
+const getMedication = {
+  params: Joi.object().keys({
+    id: Joi.string().required(),
+  }),
+};
+
+const getMedcount = {
+  params: Joi.object().keys({
+    id: Joi.string().required(),
+  }),
+};
+
+const getAgreementApprovals = {
+  params: Joi.object().keys({
+    id: Joi.string().required(),
+  }),
+};
 const getPrescriptionHistory = {
   params: Joi.object().keys({
     id: Joi.string().required(),
@@ -81,9 +126,14 @@ module.exports = {
   // approveAgreement,
   createPersonalInfo,
   createDiagnosis,
+  createMedication,
+  createMedcount,
+  getAgreementApprovals,
   getPrescriptionHistory,
   getPersonalInfos,
   getDiagnoses,
+  getMedication,
+  getMedcount,
   getPrescriptionById,
   getSignedURL,
 };

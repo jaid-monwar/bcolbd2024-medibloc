@@ -73,6 +73,8 @@ const APPROVAL_STATUS = {
   APPROVED: "approved",
   REJECTED: "rejected",
   OTHER: "other",
+  ACTIVE: "active",
+  INACTIVE: "inactive",
 };
 
 module.exports = {

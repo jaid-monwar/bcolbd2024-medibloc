@@ -58,6 +58,36 @@ router
     prescriptionController.getDiagnosesByPrescriptionId
   );
 
+
+//   Routes for Medication
+router
+  .route("/medication/:id")
+  .post(
+    auth,
+    validate(prescriptionValidation.createMedication),
+    prescriptionController.createMedication
+  )
+  .get(
+    auth,
+    validate(prescriptionValidation.getMedication),
+    prescriptionController.getMedicationByPrescriptionId
+  );
+
+
+//   Routes for Medcount
+router
+  .route("/medcount/:id")
+  .post(
+    auth,
+    validate(prescriptionValidation.createMedcount),
+    prescriptionController.createMedcount
+  )
+  .get(
+    auth,
+    validate(prescriptionValidation.getMedcount),
+    prescriptionController.getMedcountByPrescriptionId
+  );
+
 module.exports = router;
 
 /**
