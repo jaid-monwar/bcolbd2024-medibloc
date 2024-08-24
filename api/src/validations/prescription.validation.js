@@ -6,6 +6,7 @@ const { count } = require("console");
 const createPrescription = Joi.object().keys({
   firstParty: Joi.string().required(),
   secondParty: Joi.string().required(),
+  thirdParty: Joi.string().required(),
 });
 
 const getPrescriptionById = {
@@ -114,6 +115,11 @@ const getAgreementApprovals = {
     id: Joi.string().required(),
   }),
 };
+const getPrescriptionHistory = {
+  params: Joi.object().keys({
+    id: Joi.string().required(),
+  }),
+};
 
 module.exports = {
   createPrescription,
@@ -123,6 +129,7 @@ module.exports = {
   createMedication,
   createMedcount,
   getAgreementApprovals,
+  getPrescriptionHistory,
   getPersonalInfos,
   getDiagnoses,
   getMedication,
