@@ -5,6 +5,7 @@ const { password } = require("./custom.validation");
 const createPrescription = Joi.object().keys({
   firstParty: Joi.string().required(),
   secondParty: Joi.string().required(),
+  thirdParty: Joi.string().required(),
 });
 
 const getPrescriptionById = {
@@ -69,7 +70,7 @@ const getDiagnoses = {
   }),
 };
 
-const getAgreementApprovals = {
+const getPrescriptionHistory = {
   params: Joi.object().keys({
     id: Joi.string().required(),
   }),
@@ -80,7 +81,7 @@ module.exports = {
   // approveAgreement,
   createPersonalInfo,
   createDiagnosis,
-  getAgreementApprovals,
+  getPrescriptionHistory,
   getPersonalInfos,
   getDiagnoses,
   getPrescriptionById,
