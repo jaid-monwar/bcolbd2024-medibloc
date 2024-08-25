@@ -164,7 +164,7 @@ const createDiagnosis = async (diagnosisData, prescriptionId, user) => {
         prescriptionId: prescriptionId,
         diagnosis: diagnosisData.diagnosis,
         docType: BLOCKCHAIN_DOC_TYPE.DIAGNOSIS,
-        status: diagnosisData.status,
+        // status: diagnosisData.status,
         comment: diagnosisData.comment,
         createBy: user.email,
         updatedBy: user.email,
@@ -232,7 +232,7 @@ const createMedication = async (medicationData, prescriptionId, user) => {
         prescriptionId: prescriptionId,
         medication: medicationData.medication, // the medication name
         docType: BLOCKCHAIN_DOC_TYPE.MEDICATION,
-        status: medicationData.status, // active, inactive
+        // status: medicationData.status, // active, inactive
         dosage: medicationData.dosage, // the dosage
         timePeriod: medicationData.timePeriod, // the time period to take the medication
         comment: medicationData.comment, // the comment by doctor

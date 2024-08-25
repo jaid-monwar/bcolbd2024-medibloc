@@ -28,6 +28,14 @@ const queryUsers = async (filter, options) => {
   return User.paginate(filter, options);
 };
 
+const queryDoctors = async (filter, options) => {
+  return User.paginate(filter, options);
+};
+
+const queryPharmacists = async (filter, options) => {
+  return User.paginate(filter, options);
+};
+
 /**
  * Get user by id
  * @param {ObjectId} id
@@ -99,6 +107,24 @@ const updateUserStatus = async (userId, status) => {
 };
 
 /**
+ * Update user by id
+ * @param {ObjectId} userId
+ * @param {Object} updateBody
+ * @returns {Promise<User>}
+ */
+const updateUserAccess = async (userId, access) => {
+  const user = await getUserById(userId);
+
+  if (!user) {
+    throw new ApiError(httpStatus.NOT_FOUND, "User not found");
+  }
+
+  user.access = access;
+  await user.save();
+  return user;
+};
+
+/**
  * Delete user by id
  * @param {ObjectId} userId
  * @returns {Promise<User>}
@@ -115,9 +141,12 @@ const deleteUserById = async (userId) => {
 module.exports = {
   createUser,
   queryUsers,
+  queryDoctors,
+  queryPharmacists,
   getUserById,
   getUserByEmail,
   updateUserById,
   deleteUserById,
   updateUserStatus,
+  updateUserAccess,
 };

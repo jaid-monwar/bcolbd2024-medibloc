@@ -38,20 +38,18 @@ const createDiagnosis = {
   }),
 };
 
-
-
 const createMedication = {
   body: Joi.object().keys({
     medication: Joi.string().required(),
     dosage: Joi.string().required(),
     timePeriod: Joi.string().required(),
     comment: Joi.string().required(),
-    status: Joi.string()
-      .required()
-      .valid(
-        APPROVAL_STATUS.ACTIVE,
-        APPROVAL_STATUS.INACTIVE
-      ),
+    // status: Joi.string()
+    //   .required()
+    //   .valid(
+    //     APPROVAL_STATUS.ACTIVE,
+    //     APPROVAL_STATUS.INACTIVE
+    //   ),
   }),
 };
 
@@ -62,8 +60,6 @@ const createMedcount = {
     comment: Joi.string().required(),
   }),
 };
-
-
 
 // const approveAgreement = {
 //   body: Joi.object().keys({
