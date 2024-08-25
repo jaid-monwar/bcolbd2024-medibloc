@@ -5,7 +5,6 @@ const {
   ORG_DEPARTMENT,
   USER_STATUS,
   USER_TYPE,
-  ORG_INSTITUTION_NAME,
   ORG_LOCATION,
 } = require("./Constants");
 const { registerUser } = require("./blockchainUtils");
@@ -14,24 +13,31 @@ const ingestBootstrapData = async () => {
   const staticOrgData = [
     { name: "Org1", id: 1, parentId: 1 },
     { name: "Org2", id: 2, parentId: 1 },
+    { name: "Org3", id: 3, parentId: 1 },
   ];
   const staticUser = [
     {
-      name: "kamal",
-      email: "admin50@gmail.com",
+      name: "sayem",
+      email: "admindoctor@gmail.com",
       orgId: 1,
       password: config.commonPassword,
       department: ORG_DEPARTMENT.DOCTOR,
-      institutionName: ORG_INSTITUTION_NAME.SQUARE,
       location: ORG_LOCATION.DHAKA,
     },
     {
-      name: "jamal",
-      email: "admin51@gmail.com",
+      name: "jaid",
+      email: "adminpharmacist@gmail.com",
       orgId: 2,
       password: config.commonPassword,
       department: ORG_DEPARTMENT.PHARMACIST,
-      institutionName: ORG_INSTITUTION_NAME.LAZZ,
+      location: ORG_LOCATION.DHAKA,
+    },
+    {
+      name: "humayra",
+      email: "adminpatient@gmail.com",
+      orgId: 3,
+      password: config.commonPassword,
+      department: ORG_DEPARTMENT.PATIENT,
       location: ORG_LOCATION.DHAKA,
     },
   ];
@@ -62,9 +68,9 @@ const ingestBootstrapData = async () => {
         orgId: user.orgId,
         password: user.password,
         status: USER_STATUS.ACTIVE,
+        access: USER_STATUS.POSITIVE,
         type: USER_TYPE.ADMIN,
         department: user.department,
-        institutionName: user.institutionName,
         location: user.location,
       });
       try {

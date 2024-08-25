@@ -26,6 +26,22 @@ const updateUserStatus = catchAsync(async (req, res) => {
     );
 });
 
+const updateUserAccess = catchAsync(async (req, res) => {
+  let { orgId } = req.loggerInfo.user;
+  let { id } = req.params;
+  let access = req.body.access;
+  const user = await userService.updateUserAccess(id, access);
+  res
+    .status(httpStatus.OK)
+    .send(
+      getSuccessResponse(
+        httpStatus.OK,
+        `User access status updated successfully, Access: ${user.access}`,
+        ""
+      )
+    );
+});
+
 const getUsers = catchAsync(async (req, res) => {
   const { page, size } = req.query;
   const { limit, offset } = getPagination(page, size);
@@ -36,13 +52,57 @@ const getUsers = catchAsync(async (req, res) => {
   console.log("------orgid is---", filter);
 
   const options = { offset, limit, sort: { createdAt: -1 } };
-  console.log("---optipns is---", options);
+  console.log("---options is---", options);
 
   const result = await userService.queryUsers(filter, options);
   res
     .status(httpStatus.OK)
     .send(
       getSuccessResponse(httpStatus.OK, "Users fetched successfully", result)
+    );
+});
+
+const getDoctors = catchAsync(async (req, res) => {
+  const { page, size } = req.query;
+  const { limit, offset } = getPagination(page, size);
+
+  let filter = {
+    department: "doctor",
+  };
+  console.log("------orgid is---", filter);
+
+  const options = { offset, limit, sort: { createdAt: -1 } };
+  console.log("------department is---", filter);
+
+  const result = await userService.queryDoctors(filter, options);
+  res
+    .status(httpStatus.OK)
+    .send(
+      getSuccessResponse(httpStatus.OK, "Doctors fetched successfully", result)
+    );
+});
+
+const getPharmacists = catchAsync(async (req, res) => {
+  const { page, size } = req.query;
+  const { limit, offset } = getPagination(page, size);
+
+  let filter = {
+    department: "pharmacist",
+  };
+  console.log("------department is---", filter);
+
+  const options = { offset, limit, sort: { createdAt: -1 } };
+  console.log("---options is---", options);
+
+  const result = await userService.queryPharmacists(filter, options);
+  res
+    .status(httpStatus.OK)
+    .send(
+      getSuccessResponse(
+        httpStatus.OK,
+        "Pharmacists fetched successfully",
+        result
+      )
     );
 });
 
@@ -69,8 +129,11 @@ const deleteUser = catchAsync(async (req, res) => {
 module.exports = {
   createUser,
   getUsers,
+  getDoctors,
+  getPharmacists,
   getUser,
   updateUser,
   deleteUser,
   updateUserStatus,
+  updateUserAccess,
 };

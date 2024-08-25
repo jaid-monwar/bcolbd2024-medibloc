@@ -3,7 +3,7 @@ const validator = require("validator");
 const bcrypt = require("bcryptjs");
 const { toJSON, paginate } = require("./plugins");
 const { roles } = require("../config/roles");
-const { USER_STATUS, USER_TYPE } = require("../utils/Constants");
+const { USER_STATUS, USER_TYPE, USER_ACCESS } = require("../utils/Constants");
 
 const mongoosePaginate = require("mongoose-paginate-v2");
 
@@ -41,11 +41,10 @@ const userSchema = mongoose.Schema(
       private: true, // used by the toJSON plugin
     },
     status: { type: String, default: USER_STATUS.INACTIVE },
+    access: { type: String, default: USER_ACCESS.NEGATIVE },
     type: { type: String, default: USER_TYPE.USER },
     orgId: { type: Number },
-
     department: { type: String },
-    institutionName: { type: String },
     location: { type: String },
     secret: { type: String, required: false },
     isVerified: { type: Boolean, required: false, default: false },

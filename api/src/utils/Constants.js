@@ -4,6 +4,12 @@ const USER_STATUS = {
   OTHER: "other",
 };
 
+const USER_ACCESS = {
+  POSITIVE: "positive",
+  NEGATIVE: "negative",
+  OTHER: "other",
+};
+
 const USER_TYPE = {
   ADMIN: "admin",
   USER: "user",
@@ -79,6 +85,7 @@ const APPROVAL_STATUS = {
 
 module.exports = {
   USER_STATUS,
+  USER_ACCESS,
   USER_TYPE,
   ORG_DEPARTMENT,
   ORG_INSTITUTION_NAME,

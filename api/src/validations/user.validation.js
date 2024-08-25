@@ -1,5 +1,9 @@
 const Joi = require("joi");
-const { ORG_DEPARTMENT, USER_STATUS } = require("../utils/Constants");
+const {
+  ORG_DEPARTMENT,
+  USER_STATUS,
+  USER_ACCESS,
+} = require("../utils/Constants");
 const { password, objectId } = require("./custom.validation");
 
 const createUser = {
@@ -32,7 +36,31 @@ const updateUserStatus = {
   }),
 };
 
+const updateUserAccess = {
+  params: Joi.object().keys({
+    id: Joi.string().custom(objectId),
+  }),
+  body: Joi.object().keys({
+    access: Joi.string()
+      .required()
+      .valid(USER_ACCESS.POSITIVE, USER_ACCESS.NEGATIVE, USER_ACCESS.OTHER),
+  }),
+};
+
 const getUsers = {
+  query: Joi.object().keys({
+    size: Joi.number().integer().max(100).required(),
+    page: Joi.number().integer().required(),
+  }),
+};
+const getDoctors = {
+  query: Joi.object().keys({
+    size: Joi.number().integer().max(100).required(),
+    page: Joi.number().integer().required(),
+  }),
+};
+
+const getPharmacists = {
   query: Joi.object().keys({
     size: Joi.number().integer().max(100).required(),
     page: Joi.number().integer().required(),
@@ -67,8 +95,11 @@ const deleteUser = {
 module.exports = {
   createUser,
   getUsers,
+  getDoctors,
+  getPharmacists,
   getUser,
   updateUser,
   deleteUser,
   updateUserStatus,
+  updateUserAccess,
 };
