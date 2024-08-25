@@ -28,7 +28,7 @@ const utf8Decoder = new TextDecoder();
  * @param {Object} userBody
  * @returns {Promise<Agreement>}
  */
-const createPrescription = async (prescriptionData, user) => {
+const createPrescription = async (prescriptionData,fileMetadata, user) => {
   let gateway;
   let client;
   try {
@@ -49,6 +49,7 @@ const createPrescription = async (prescriptionData, user) => {
         updatedBy: user.email,
         createAt: dateTime,
         updatedAt: dateTime,
+        document: { ...fileMetadata, createBy: user.email, updatedBy: user.email, createAt: dateTime, updatedAt: dateTime },
       },
     };
 

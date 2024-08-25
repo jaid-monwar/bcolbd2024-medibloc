@@ -9,15 +9,18 @@ const { USER_ACCESS } = require("../utils/Constants");
 
 const createPrescription = catchAsync(async (req, res) => {
   let { user } = req.loggerInfo;
+  let fileMetadata = req.body.fileMetadata;
   console.log("============user========", user);
-
+  
   if (user && user.department !== "patient") {
     throw new ApiError(
       httpStatus.UNAUTHORIZED,
       "You do not have the permission to create prescription form"
     );
   }
-  const result = await prescriptionService.createPrescription(req.body, user);
+  
+  // const result = await prescriptionService.createPrescription(req.body, user);
+  const result = await prescriptionService.createPrescription(req.body, fileMetadata, user);
   res
     .status(httpStatus.CREATED)
     .send(
