@@ -2,7 +2,7 @@ const express = require("express");
 const authRoute = require("./auth.route");
 const userRoute = require("./user.route");
 const docsRoute = require("./docs.route");
-const agreementRoute = require("./agreement.route");
+const prescriptionRoute = require("./prescription.route");
 const config = require("../../config/config");
 const qsccRoute = require("./qscc.route");
 
@@ -16,6 +16,14 @@ const defaultRoutes = [
   {
     path: "/users",
     route: userRoute,
+  },
+  {
+    path: "/prescriptions",
+    route: prescriptionRoute,
+  },
+  {
+    path: "/qscc",
+    route: qsccRoute,
   },
 ];
 

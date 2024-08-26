@@ -28,7 +28,7 @@ const utf8Decoder = new TextDecoder();
  * @param {Object} userBody
  * @returns {Promise<Agreement>}
  */
-const createPrescription = async (prescriptionData, user) => {
+const createPrescription = async (prescriptionData,fileMetadata, user) => {
   let gateway;
   let client;
   try {
@@ -49,6 +49,7 @@ const createPrescription = async (prescriptionData, user) => {
         updatedBy: user.email,
         createAt: dateTime,
         updatedAt: dateTime,
+        document: { ...fileMetadata, createBy: user.email, updatedBy: user.email, createAt: dateTime, updatedAt: dateTime },
       },
     };
 
@@ -164,7 +165,7 @@ const createDiagnosis = async (diagnosisData, prescriptionId, user) => {
         prescriptionId: prescriptionId,
         diagnosis: diagnosisData.diagnosis,
         docType: BLOCKCHAIN_DOC_TYPE.DIAGNOSIS,
-        status: diagnosisData.status,
+        // status: diagnosisData.status,
         comment: diagnosisData.comment,
         createBy: user.email,
         updatedBy: user.email,
@@ -212,7 +213,6 @@ const createDiagnosis = async (diagnosisData, prescriptionId, user) => {
   }
 };
 
-
 /**
  * Create a medication
  * doctor is the owner
@@ -231,11 +231,11 @@ const createMedication = async (medicationData, prescriptionId, user) => {
       data: {
         id: getUUID(),
         prescriptionId: prescriptionId,
-        medication: medicationData.medication,  // the medication name
+        medication: medicationData.medication, // the medication name
         docType: BLOCKCHAIN_DOC_TYPE.MEDICATION,
-        status: medicationData.status,  // active, inactive
-        dosage: medicationData.dosage,  // the dosage
-        timePeriod: medicationData.timePeriod,  // the time period to take the medication     
+        // status: medicationData.status, // active, inactive
+        dosage: medicationData.dosage, // the dosage
+        timePeriod: medicationData.timePeriod, // the time period to take the medication
         comment: medicationData.comment, // the comment by doctor
         createBy: user.email,
         updatedBy: user.email,
@@ -283,8 +283,6 @@ const createMedication = async (medicationData, prescriptionId, user) => {
   }
 };
 
-
-
 /**
  * Create a user
  * @param {Object} userBody
@@ -302,9 +300,9 @@ const createMedcount = async (medcountData, prescriptionId, user) => {
       data: {
         id: getUUID(),
         prescriptionId: prescriptionId,
-        medication: medcountData.medication,  // the medication name for the pharmacist to count
+        medication: medcountData.medication, // the medication name for the pharmacist to count
         docType: BLOCKCHAIN_DOC_TYPE.MEDCOUNT,
-        count: medcountData.count,  // the count of the medication
+        count: medcountData.count, // the count of the medication
         comment: medcountData.comment, // the comment by pharmacist
         createBy: user.email,
         updatedBy: user.email,
@@ -351,9 +349,6 @@ const createMedcount = async (medcountData, prescriptionId, user) => {
     }
   }
 };
-
-
-
 
 /**
  * Create a user
@@ -626,13 +621,6 @@ const queryMedcountByPrescriptionId = async (filter) => {
   );
   return data;
 };
-
-
-
-
-
-
-
 
 const validateApprovals = async (agreementId, user) => {
   let orgName = `org${user.orgId}`;

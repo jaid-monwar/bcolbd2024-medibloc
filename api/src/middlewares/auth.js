@@ -25,7 +25,6 @@ const auth = catchAsync(async (req, res, next) => {
       email: decodedData?.email,
       orgId: decodedData?.orgId?.toString(),
       department: decodedData?.department,
-      insitutionName: decodedData?.insitutionName,
       location: decodedData?.location,
     },
   };
@@ -60,7 +59,6 @@ const adminAuth = catchAsync(async (req, res, next) => {
       email: decodedData?.email,
       orgId: parseInt(decodedData?.orgId),
       department: decodedData?.department,
-      insitutionName: decodedData?.insitutionName,
       location: decodedData?.location,
     },
   };

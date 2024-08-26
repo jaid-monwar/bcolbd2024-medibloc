@@ -4,13 +4,14 @@ const validate = require("../../middlewares/validate");
 const userValidation = require("../../validations/user.validation");
 const prescriptionValidation = require("../../validations/prescription.validation");
 const prescriptionController = require("../../controllers/prescription.controller");
+const { uploadFileToS3 } = require('../../utils/fileUpload');
 
 const router = express.Router();
 
 //   Routes for Prescription
 router
   .route("/")
-  .post(auth, prescriptionController.createPrescription)
+  .post(auth, uploadFileToS3, prescriptionController.createPrescription)
   .get(auth, prescriptionController.getPrescriptions);
 
 router
@@ -58,7 +59,6 @@ router
     prescriptionController.getDiagnosesByPrescriptionId
   );
 
-
 //   Routes for Medication
 router
   .route("/medication/:id")
@@ -72,7 +72,6 @@ router
     validate(prescriptionValidation.getMedication),
     prescriptionController.getMedicationByPrescriptionId
   );
-
 
 //   Routes for Medcount
 router

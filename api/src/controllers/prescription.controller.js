@@ -5,11 +5,22 @@ const catchAsync = require("../utils/catchAsync");
 const { userService, prescriptionService } = require("../services");
 const { getPagination } = require("../utils/pagination");
 const { getSuccessResponse } = require("../utils/Response");
+const { USER_ACCESS } = require("../utils/Constants");
 
 const createPrescription = catchAsync(async (req, res) => {
   let { user } = req.loggerInfo;
+  let fileMetadata = req.body.fileMetadata;
   console.log("============user========", user);
-  const result = await prescriptionService.createPrescription(req.body, user);
+  
+  if (user && user.department !== "patient") {
+    throw new ApiError(
+      httpStatus.UNAUTHORIZED,
+      "You do not have the permission to create prescription form"
+    );
+  }
+  
+  // const result = await prescriptionService.createPrescription(req.body, user);
+  const result = await prescriptionService.createPrescription(req.body, fileMetadata, user);
   res
     .status(httpStatus.CREATED)
     .send(
@@ -25,6 +36,12 @@ const createPersonalInfo = catchAsync(async (req, res) => {
   let { user } = req.loggerInfo;
   let personalinfoData = req.body;
   let prescriptionId = req.params.id;
+  if (user && user.department !== "patient") {
+    throw new ApiError(
+      httpStatus.UNAUTHORIZED,
+      "You do not have the permission to fill up this form"
+    );
+  }
   const result = await prescriptionService.createPersonalInfo(
     personalinfoData,
     prescriptionId,
@@ -45,6 +62,16 @@ const createDiagnosis = catchAsync(async (req, res) => {
   let { user } = req.loggerInfo;
   let diagnosisData = req.body;
   let prescriptionId = req.params.id;
+  if (
+    user &&
+    user.department !== "doctor" &&
+    user.access !== USER_ACCESS.POSITIVE
+  ) {
+    throw new ApiError(
+      httpStatus.UNAUTHORIZED,
+      "You do not have the permission to fill up this form"
+    );
+  }
   const result = await prescriptionService.createDiagnosis(
     diagnosisData,
     prescriptionId,
@@ -65,6 +92,16 @@ const createMedication = catchAsync(async (req, res) => {
   let { user } = req.loggerInfo;
   let medicationData = req.body;
   let prescriptionId = req.params.id;
+  if (
+    user &&
+    user.department !== "doctor" &&
+    user.access !== USER_ACCESS.POSITIVE
+  ) {
+    throw new ApiError(
+      httpStatus.UNAUTHORIZED,
+      "You do not have the permission to fill up this form"
+    );
+  }
   const result = await prescriptionService.createMedication(
     medicationData,
     prescriptionId,
@@ -85,6 +122,16 @@ const createMedcount = catchAsync(async (req, res) => {
   let { user } = req.loggerInfo;
   let medcountData = req.body;
   let prescriptionId = req.params.id;
+  if (
+    user &&
+    user.department !== "pharmacist" &&
+    user.access !== USER_ACCESS.POSITIVE
+  ) {
+    throw new ApiError(
+      httpStatus.UNAUTHORIZED,
+      "You do not have the permission to fill up this form"
+    );
+  }
   const result = await prescriptionService.createMedcount(
     medcountData,
     prescriptionId,
@@ -100,7 +147,6 @@ const createMedcount = catchAsync(async (req, res) => {
       )
     );
 });
-
 
 const approveAgreement = catchAsync(async (req, res) => {
   let { user } = req.loggerInfo;
